@@ -1,5 +1,6 @@
 import OpenAI from "openai";
 import type { AnalyzeInput } from "@test-task-261225/shared";
+import { logger } from "../lib/logger";
 
 const getClient = () => {
   const apiKey = process.env.OPENAI_API_KEY;
@@ -15,26 +16,48 @@ export const generateAnalysis = async (input: AnalyzeInput) => {
   const client = getClient();
   const model = getModel();
 
-  const completion = await client.chat.completions.create({
+  logger.debug("Calling OpenAI API", {
     model,
-    messages: [
-      {
-        role: "system",
-        content:
-          "You summarize a brief personality insight based on name, age, and description.", // TODO: change prompt
-      },
-      {
-        role: "user",
-        content: `Name: ${input.name}\nAge: ${input.age}\nDescription: ${input.description}`,
-      },
-    ],
-    temperature: 0.7,
+    inputName: input.name,
+    inputAge: input.age,
   });
 
-  const message = completion.choices[0]?.message?.content?.trim();
-  if (!message) {
-    throw new Error("Empty response from OpenAI");
-  }
+  try {
+    const completion = await client.chat.completions.create({
+      model,
+      messages: [
+        {
+          role: "system",
+          content:
+            "You summarize a brief personality insight based on name, age, and description.",
+        },
+        {
+          role: "user",
+          content: `Name: ${input.name}\nAge: ${input.age}\nDescription: ${input.description}`,
+        },
+      ],
+      temperature: 0.7,
+    });
 
-  return message;
+    const message = completion.choices[0]?.message?.content?.trim();
+    if (!message) {
+      logger.error("Empty response from OpenAI", undefined, {
+        completion: JSON.stringify(completion),
+      });
+      throw new Error("Empty response from OpenAI");
+    }
+
+    logger.debug("OpenAI API response received", {
+      model,
+      responseLength: message.length,
+    });
+
+    return message;
+  } catch (error) {
+    logger.error("OpenAI API call failed", error, {
+      model,
+      inputName: input.name,
+    });
+    throw error;
+  }
 };

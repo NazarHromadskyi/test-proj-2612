@@ -1,76 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import type { ChangeEvent, FormEvent } from "react";
-import { useState } from "react";
-
-const apiBaseUrl =
-  process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:5000";
-
-type FormState = {
-  name: string;
-  age: string;
-  description: string;
-};
+import { getApiBaseUrl } from "../lib/api";
+import { useAnalyze } from "../lib/use-analyze";
 
 export default function Home() {
-  const [form, setForm] = useState<FormState>({
-    name: "",
-    age: "",
-    description: "",
-  });
-  const [requestId, setRequestId] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [submitting, setSubmitting] = useState(false);
-
-  const onChange =
-    (field: keyof FormState) =>
-    (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-      setForm((prev) => ({ ...prev, [field]: event.target.value }));
-    };
-
-  const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setError(null);
-    setRequestId(null);
-
-    const payload = {
-      name: form.name.trim(),
-      age: Number(form.age),
-      description: form.description.trim(),
-    };
-
-    if (!payload.name || !payload.description || Number.isNaN(payload.age)) {
-      setError("Please fill name, age, and description.");
-      return;
-    }
-
-    setSubmitting(true);
-    try {
-      const response = await fetch(`${apiBaseUrl}/analyze`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      const data = (await response.json().catch(() => ({}))) as {
-        requestId?: string;
-        message?: string;
-      };
-
-      if (!response.ok || !data.requestId) {
-        setError(data.message ?? "Request failed. Please try again.");
-        return;
-      }
-
-      setRequestId(data.requestId);
-      setForm({ name: "", age: "", description: "" });
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Network error";
-      setError(message);
-    } finally {
-      setSubmitting(false);
-    }
-  };
+  const { form, requestId, error, submitting, onChange, onSubmit } =
+    useAnalyze();
 
   return (
     <div className="min-h-screen bg-[#f6f1e8] text-slate-900">
@@ -82,7 +18,7 @@ export default function Home() {
           <section className="space-y-6">
             <div className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-white/70 px-4 py-1 text-sm">
               <span className="font-[var(--font-display)] text-lg">Async</span>
-              <span className="text-slate-600">AI analysis, no waiting</span>
+              <span className="text-slate-600">AI analysis</span>
             </div>
             <h1 className="text-4xl font-semibold leading-tight tracking-tight sm:text-5xl">
               Submit a person profile and get an insight later.
@@ -177,7 +113,7 @@ export default function Home() {
                 Live endpoint
               </p>
               <p className="mt-2 break-all text-lg font-semibold">
-                {apiBaseUrl}
+                {getApiBaseUrl()}
               </p>
               <p className="mt-3 text-sm text-white/70">
                 You can override this with{" "}

@@ -1,23 +1,15 @@
 "use client";
 
 import Link from "next/link";
+import type { AnalyzeStatusResponse } from "@test-task-261225/shared";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
-
-const apiBaseUrl =
-  process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:5000";
-
-type AnalyzeResponse = {
-  status?: string;
-  result?: string;
-  error?: string;
-  requestId?: string;
-};
+import { fetchAnalysisStatus, getApiBaseUrl } from "../../../lib/api";
 
 export default function ResultPage() {
   const params = useParams<{ id: string }>();
   const requestId = params?.id;
-  const [data, setData] = useState<AnalyzeResponse | null>(null);
+  const [data, setData] = useState<AnalyzeStatusResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
@@ -29,21 +21,9 @@ export default function ResultPage() {
     const load = async () => {
       setError(null);
       try {
-        const response = await fetch(`${apiBaseUrl}/analyze/${requestId}`);
-        const payload = (await response.json().catch(() => ({}))) as
-          | AnalyzeResponse
-          | { message?: string };
-
-        if (!response.ok) {
-          throw new Error(
-            "message" in payload && payload.message
-              ? payload.message
-              : "Failed to fetch status."
-          );
-        }
-
+        const payload = await fetchAnalysisStatus(requestId);
         if (mounted) {
-          setData(payload as AnalyzeResponse);
+          setData(payload);
           setLastUpdated(new Date());
         }
       } catch (err) {
@@ -132,7 +112,7 @@ export default function ResultPage() {
             Endpoint used
           </p>
           <p className="mt-2 break-all text-lg font-semibold">
-            {apiBaseUrl}/analyze/{requestId}
+            {getApiBaseUrl()}/analyze/{requestId}
           </p>
         </div>
       </div>

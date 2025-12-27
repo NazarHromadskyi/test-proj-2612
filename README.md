@@ -53,6 +53,12 @@ NEXT_PUBLIC_API_BASE_URL=http://localhost:3001
 
 ```
 pnpm -w install
+pnpm dev
+```
+
+Or run separately:
+
+```
 pnpm --filter api dev
 pnpm --filter web dev
 ```
@@ -70,6 +76,7 @@ Open:
 
 ## Notes / Simplifications
 
+- Business logic is kept inside controllers because the flow is small; in production this would move to dedicated services/use-cases.
 - The webhook only does signature verification and simple state transitions to keep the flow readable and focused on the main async logic.
 - The frontend polls the API every 3 seconds instead of using push/streaming to avoid adding WebSocket/SSE complexity.
 - Minimal error modeling: errors are saved as plain strings.
@@ -78,7 +85,7 @@ Open:
 
 - Add auth + rate limiting for `/analyze` and strict verification for `/webhook` (replay protection, tighter signature checks).
 - Make async jobs idempotent and add retries/backoff with a dead-letter queue.
-- Store results in a durable database (plus migrations), keep Redis only as a cache.
+- Store results in a durable database, keep Redis only as a cache.
 - Add structured logs, tracing, and metrics for the async pipeline.
 - Centralize secrets/config management and rotate keys safely.
 - Add load testing and autoscaling policies for spikes.

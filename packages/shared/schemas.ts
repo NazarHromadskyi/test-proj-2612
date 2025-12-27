@@ -19,3 +19,9 @@ export const analyzeResultSchema = z.object({
   result: z.string().nullable().optional(),
   error: z.string().nullable().optional(),
 });
+
+export const analyzeCreateResponseSchema = z.object({
+  requestId: z.string(),
+});
+
+export const analyzeStatusResponseSchema = analyzeResultSchema;
