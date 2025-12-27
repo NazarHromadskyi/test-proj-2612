@@ -1,0 +1,14 @@
+{
+  "name": "@test-task-261225/shared",
+  "private": true,
+  "version": "1.0.0",
+  "types": "index.ts",
+  "exports": {
+    ".": "./index.ts",
+    "./schemas": "./schemas.ts",
+    "./types": "./types.ts"
+  },
+  "dependencies": {
+    "zod": "^4.2.1"
+  }
+}
